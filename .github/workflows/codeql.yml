@@ -8,7 +8,6 @@ on:
 permissions:
   actions: read
   contents: read
-  security-events: write
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -19,4 +18,15 @@ jobs:
         with:
           languages: javascript-typescript
           queries: security-extended
-      - uses: github/codeql-action/analyze@v3
+      - id: codeql-analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          # Private repositories require GitHub Code Security to upload SARIF.
+          # Keep the full scan and archive the report without requiring that add-on.
+          upload: never
+      - name: Archive CodeQL SARIF
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif
+          path: ${{ steps.codeql-analysis.outputs.sarif-output }}
+          retention-days: 14
