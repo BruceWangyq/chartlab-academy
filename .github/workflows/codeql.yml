@@ -14,16 +14,17 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript
           queries: security-extended
       - id: codeql-analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           # Private repositories require GitHub Code Security to upload SARIF.
           # Keep the full scan and archive the report without requiring that add-on.
           upload: never
+          upload-database: false
       - name: Archive CodeQL SARIF
         uses: actions/upload-artifact@v4
         with:
