@@ -5,10 +5,11 @@ import { getDb } from "@/db";
 import { auditLogs, subscriptions } from "@/db/schema";
 import { syncStripeSubscription } from "@/lib/subscription-mirror";
 import { stripeSubscriptionMirror } from "@/lib/subscription-mirror-policy";
+import { safeEqual } from "@/lib/secure-compare";
 
 export async function GET(request: Request) {
   if (!process.env.CRON_SECRET || !process.env.STRIPE_SECRET_KEY) return NextResponse.json({ error: "Subscription reconciliation is not configured" }, { status: 503 });
-  if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!safeEqual(request.headers.get("authorization"), `Bearer ${process.env.CRON_SECRET}`)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const db = getDb(); if (!db) return NextResponse.json({ error: "Database is not configured" }, { status: 503 });
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   let corrected = 0; let failures = 0; let evaluated = 0; let cursor: string | undefined;

@@ -24,7 +24,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "请先登录。" }, { status: 401 });
   const access = await canAccessCase(chartCase, session); if (!access.allowed) return quotaResponse();
-  const rate = checkRateLimit(request, "practice-submit", 30, 60 * 60_000, id); if (!rate.allowed) return NextResponse.json({ error: "提交过于频繁，请稍后再试。" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
+  const rate = await checkRateLimit(request, "practice-submit", 30, 60 * 60_000, id); if (!rate.allowed) return NextResponse.json({ error: "提交过于频繁，请稍后再试。" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
   const parsed = practiceSubmissionSchema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: "练习内容不完整，请检查趋势、区域和理由。", fields: parsed.error.flatten().fieldErrors }, { status: 400 });
   const score = scorePractice(chartCase, parsed.data);
@@ -63,7 +63,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "请先登录。" }, { status: 401 });
   const access = await canAccessCase(chartCase, session); if (!access.allowed) return quotaResponse();
-  const rate = checkRateLimit(request, "practice-draft", 120, 60 * 60_000, `${session.id}:${id}`); if (!rate.allowed) return NextResponse.json({ error: "草稿保存过于频繁，请稍后再试。" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
+  const rate = await checkRateLimit(request, "practice-draft", 120, 60 * 60_000, `${session.id}:${id}`); if (!rate.allowed) return NextResponse.json({ error: "草稿保存过于频繁，请稍后再试。" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
   const parsed = draftSchema.safeParse(await request.json()); if (!parsed.success) return NextResponse.json({ error: "草稿格式不正确。" }, { status: 400 });
   const db = getDb();
   if (!db) return NextResponse.json({ persisted: false });

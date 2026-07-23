@@ -36,6 +36,13 @@
       "when": 1784769136284,
       "tag": "0004_previous_mercury",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784774908315,
+      "tag": "0005_parched_maginty",
+      "breakpoints": true
     }
   ]
 }

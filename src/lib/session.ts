@@ -10,7 +10,9 @@ import { manualEntitlementGrantsPro, subscriptionGrantsPro } from "@/lib/entitle
 
 const SESSION_COOKIE = "chartlab_session";
 const OTP_COOKIE = "chartlab_otp";
-const secureCookie = () => process.env.NODE_ENV === "production" && process.env.PLAYWRIGHT_TEST !== "true";
+// Secure cookies are always on in production. The PLAYWRIGHT_TEST escape is only honoured
+// off Vercel (local built-server e2e over http); it can never disable Secure on a real deploy.
+const secureCookie = () => process.env.NODE_ENV === "production" && !(process.env.PLAYWRIGHT_TEST === "true" && !process.env.VERCEL_ENV);
 const secret = () => {
   const value = process.env.AUTH_SECRET;
   if (process.env.NODE_ENV === "production" && (!value || value.length < 32)) throw new Error("AUTH_SECRET must contain at least 32 characters in production");
@@ -52,8 +54,12 @@ export async function getSession() {
   return resolveAccount(session);
 }
 export async function clearSession() { (await cookies()).set(SESSION_COOKIE, "", { httpOnly: true, sameSite: "lax", secure: secureCookie(), path: "/", maxAge: 0 }); }
-export async function setOtp(payload: { email: string; code: string }) { (await cookies()).set(OTP_COOKIE, await signToken(payload, "10m"), { httpOnly: true, sameSite: "lax", secure: secureCookie(), path: "/api/auth", maxAge: 600 }); }
-export async function getOtp() { const token = (await cookies()).get(OTP_COOKIE)?.value; return token ? verifyToken<{ email: string; code: string }>(token) : null; }
+export type OtpPayload = { email: string; code: string; attempts?: number };
+export async function setOtp(payload: OtpPayload, expiresAt?: number) {
+  const token = await new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(expiresAt ?? "10m").sign(secret());
+  (await cookies()).set(OTP_COOKIE, token, { httpOnly: true, sameSite: "lax", secure: secureCookie(), path: "/api/auth", maxAge: 600 });
+}
+export async function getOtp() { const token = (await cookies()).get(OTP_COOKIE)?.value; return token ? verifyToken<OtpPayload & { exp?: number }>(token) : null; }
 export async function clearOtp() { (await cookies()).set(OTP_COOKIE, "", { httpOnly: true, sameSite: "lax", secure: secureCookie(), path: "/api/auth", maxAge: 0 }); }
 
 function roleForEmail(email: string): SessionUser["role"] {

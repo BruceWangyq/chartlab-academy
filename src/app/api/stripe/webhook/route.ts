@@ -11,7 +11,7 @@ import { syncStripeSubscription } from "@/lib/subscription-mirror";
 
 export async function POST(request: Request) {
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) return NextResponse.json({ error: "Stripe webhook is not configured" }, { status: 503 });
-  const rate = checkRateLimit(request, "stripe-webhook", 180, 60_000);
+  const rate = await checkRateLimit(request, "stripe-webhook", 180, 60_000);
   if (!rate.allowed) return NextResponse.json({ error: "Too many webhook requests" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
   const signature = request.headers.get("stripe-signature"); if (!signature) return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   const body = await request.text(); const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); let event: Stripe.Event;

@@ -12,7 +12,7 @@ const schema = z.object({ level: z.enum(["beginner", "intermediate", "advanced"]
 export async function PATCH(request: Request) { const session = await getSession(); if (!session) return NextResponse.json({ error: "请先登录。" }, { status: 401 }); const parsed = schema.safeParse(await request.json()); if (!parsed.success) return NextResponse.json({ error: "设置内容不正确。" }, { status: 400 }); const db = getDb(); if (!db) return NextResponse.json({ error: "本地演示尚未连接账户数据库。" }, { status: 503 }); await db.insert(profiles).values({ userId: session.id, ...parsed.data }).onConflictDoUpdate({ target: profiles.userId, set: parsed.data }); return NextResponse.json({ ok: true }); }
 export async function DELETE(request: Request) {
   const session = await getSession(); if (!session) return NextResponse.json({ error: "请先登录。" }, { status: 401 });
-  const rate = checkRateLimit(request, "account-delete", 3, 24 * 60 * 60_000, session.id); if (!rate.allowed) return NextResponse.json({ error: "删除申请过于频繁，请稍后再试。" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
+  const rate = await checkRateLimit(request, "account-delete", 3, 24 * 60 * 60_000, session.id); if (!rate.allowed) return NextResponse.json({ error: "删除申请过于频繁，请稍后再试。" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
   const db = getDb(); if (!db) return NextResponse.json({ error: "本地演示尚未连接账户数据库。" }, { status: 503 });
   const activeSubscriptions = await db.select({ stripeSubscriptionId: subscriptions.stripeSubscriptionId }).from(subscriptions).where(andUserSubscription(session.id));
   const stripeIds = activeSubscriptions.flatMap((item) => item.stripeSubscriptionId ? [item.stripeSubscriptionId] : []);

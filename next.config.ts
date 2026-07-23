@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   experimental: { sri: { algorithm: "sha256" } },
   async headers() {
     const devEval = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
+    // Next.js emits inline bootstrap scripts on statically prerendered pages, so script-src
+    // keeps 'unsafe-inline'. A nonce/strict-dynamic policy is intentionally not used: the
+    // per-request nonce cannot be injected into cached static HTML, so it would block those
+    // scripts. Risk is contained by SRI (config below), no 'unsafe-eval' in production,
+    // 'object-src none', and 'base-uri self'.
     const csp = [
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline'${devEval}`,

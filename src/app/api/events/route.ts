@@ -7,7 +7,7 @@ const landingSchema = z.object({ event: z.literal("landing_view"), anonymousId: 
 const vitalSchema = z.object({ event: z.literal("web_vital_recorded"), metric: z.enum(["LCP", "INP", "CLS"]), value: z.number().nonnegative().finite(), rating: z.enum(["good", "needs-improvement", "poor"]), path: z.string().startsWith("/").max(300), navigationType: z.string().max(40) });
 const schema = z.discriminatedUnion("event", [landingSchema, vitalSchema]);
 export async function POST(request: Request) {
-  const rate = checkRateLimit(request, "analytics", 60, 60_000);
+  const rate = await checkRateLimit(request, "analytics", 60, 60_000);
   if (!rate.allowed) return new NextResponse(null, { status: 204 });
   const parsed = schema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: "Invalid event" }, { status: 400 });

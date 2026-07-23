@@ -3,10 +3,11 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { lessonProgress, profiles, users } from "@/db/schema";
 import { sendTransactionalEmail } from "@/lib/email";
+import { safeEqual } from "@/lib/secure-compare";
 
 export async function GET(request: Request) {
   if (!process.env.CRON_SECRET) return NextResponse.json({ error: "Reminder cron is not configured" }, { status: 503 });
-  if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!safeEqual(request.headers.get("authorization"), `Bearer ${process.env.CRON_SECRET}`)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const db = getDb(); if (!db) return NextResponse.json({ error: "Database is not configured" }, { status: 503 });
   const cutoff = new Date(); cutoff.setUTCDate(cutoff.getUTCDate() - 7);
   const candidates = await db.select({ userId: users.id, email: users.email, createdAt: users.createdAt }).from(profiles).innerJoin(users, eq(users.id, profiles.userId)).where(and(eq(profiles.learningReminders, true), isNull(users.deletionRequestedAt), or(isNull(profiles.lastReminderAt), lt(profiles.lastReminderAt, cutoff)))).limit(100);

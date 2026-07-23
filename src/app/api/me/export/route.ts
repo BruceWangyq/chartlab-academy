@@ -7,7 +7,7 @@ import { getSession } from "@/lib/session";
 
 export async function GET(request: Request) {
   const session = await getSession(); if (!session) return NextResponse.json({ error: "请先登录。" }, { status: 401 });
-  const rate = checkRateLimit(request, "account-export", 3, 24 * 60 * 60_000, session.id); if (!rate.allowed) return NextResponse.json({ error: "导出请求过于频繁，请稍后再试。" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
+  const rate = await checkRateLimit(request, "account-export", 3, 24 * 60 * 60_000, session.id); if (!rate.allowed) return NextResponse.json({ error: "导出请求过于频繁，请稍后再试。" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
   const db = getDb(); if (!db) return NextResponse.json({ error: "本地演示尚未连接账户数据库。" }, { status: 503 });
   const [accountRows, profileRows, enrollmentRows, progressRows, quizRows, attemptRows, noteRows, bookmarkRows, subscriptionRows, auditRows] = await Promise.all([
     db.select({ id: users.id, email: users.email, role: users.role, locale: users.locale, createdAt: users.createdAt }).from(users).where(eq(users.id, session.id)),
