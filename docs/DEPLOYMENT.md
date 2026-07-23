@@ -57,6 +57,8 @@ pnpm readiness:production
 
 `test:all` 会完成类型检查、代码规范、单元/组件测试、生产构建、Lighthouse 和生产服务器浏览器回归。Lighthouse 门禁要求性能 ≥ 90、无障碍 100、最佳实践 ≥ 95、SEO 100，且 LCP < 2.5s、CLS < 0.1、TBT < 200ms。
 
+本地 `test:all` 使用 Lighthouse 默认移动模拟；GitHub 共享运行器使用官方 desktop preset 以减少共享 CPU 抖动，但保持完全相同的分数和 LCP/CLS/TBT 阈值。线上仍以真实用户 Web Vitals P75 作为最终性能权威。
+
 `readiness:production` 会核对正式环境变量、Git 远端和 `config/go-live-approvals.json` 中的真实签字证据。示例文件不得当作签字记录使用。部署完成后执行 `pnpm verify:production -- https://你的正式域名`，自动验证公开路由、法律页、canonical、安全头、robots、sitemap、404 与数据库健康检查。
 
 合并 main 后验证：

@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import process from "node:process";
 
 const port = process.env.LIGHTHOUSE_PORT ?? "3100";
+const preset = process.env.LIGHTHOUSE_PRESET === "desktop" ? "desktop" : null;
 const url = `http://127.0.0.1:${port}`;
 const outputDirectory = new URL("../artifacts/", import.meta.url);
 const outputPath = new URL("lighthouse-home.json", outputDirectory);
@@ -17,14 +18,16 @@ const server = spawn("pnpm", ["start"], {
 
 try {
   await waitForServer(url, 45_000);
-  const exitCode = await run("pnpm", [
+  const lighthouseArgs = [
     "exec", "lighthouse", url,
     "--quiet",
     "--output=json",
     `--output-path=${outputPath.pathname}`,
     "--only-categories=performance,accessibility,best-practices,seo",
     "--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage",
-  ]);
+  ];
+  if (preset) lighthouseArgs.push(`--preset=${preset}`);
+  const exitCode = await run("pnpm", lighthouseArgs);
   if (exitCode !== 0) throw new Error(`Lighthouse exited with code ${exitCode}`);
 
   const report = JSON.parse(await readFile(outputPath, "utf8"));
@@ -44,7 +47,7 @@ try {
   if (metrics.cls >= 0.1) failures.push(`CLS ${metrics.cls.toFixed(3)} exceeds 0.1`);
   if (metrics.tbt >= 200) failures.push(`TBT ${Math.round(metrics.tbt)}ms exceeds 200ms`);
 
-  console.log(`Lighthouse: performance ${scores.performance}, accessibility ${scores.accessibility}, best practices ${scores["best-practices"]}, SEO ${scores.seo}`);
+  console.log(`Lighthouse (${preset ?? "mobile"}): performance ${scores.performance}, accessibility ${scores.accessibility}, best practices ${scores["best-practices"]}, SEO ${scores.seo}`);
   console.log(`Lab metrics: LCP ${Math.round(metrics.lcp)}ms, CLS ${metrics.cls.toFixed(3)}, TBT ${Math.round(metrics.tbt)}ms`);
   if (failures.length) throw new Error(failures.join("; "));
 } finally {
