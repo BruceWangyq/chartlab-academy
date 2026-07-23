@@ -1,0 +1,6 @@
+import "server-only";
+import { createClient } from "@sanity/client";
+
+export function getCmsClient(preview = false) { const projectId = process.env.SANITY_PROJECT_ID ?? process.env.NEXT_PUBLIC_SANITY_PROJECT_ID; if (!projectId) return null; return createClient({ projectId, dataset: process.env.SANITY_DATASET ?? process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production", apiVersion: "2026-07-01", useCdn: process.env.NODE_ENV === "production" && !preview, perspective: preview ? "drafts" : "published", token: preview ? process.env.SANITY_API_READ_TOKEN : undefined }); }
+export async function getPublishedCourses() { const client = getCmsClient(); if (!client) return null; return client.fetch(`*[_type == "course"] | order(order asc){_id, code, title, "slug": slug.current, description, order, "lessons": lessons[]->{_id, title, "slug": slug.current, order, duration, free, summary}}`, {}, { next: { tags: ["courses"] } }); }
+export async function getCourseRuntimeConfig(slug: string) { const fallback = { enforceSequence: process.env.DEFAULT_ENFORCE_LESSON_SEQUENCE === "true" }; const client = getCmsClient(); if (!client) return fallback; try { return await client.fetch(`*[_type == "course" && slug.current == $slug][0]{"enforceSequence": coalesce(enforceSequence, false)}`, { slug }, { next: { tags: [`course:${slug}`] } }) ?? fallback; } catch { return fallback; } }

@@ -1,0 +1,5 @@
+import type { Metadata } from "next";
+import { Eye, RefreshCcw, ShieldCheck } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+export const metadata: Metadata = { title: "关于与方法", description: "图表研习社的教学方法、内容原则和产品边界。" };
+export default function AboutPage() { return <><SiteHeader /><main id="main-content" className="about-page"><section className="page-intro"><div className="shell"><span className="eyebrow light"><span /> Our method</span><h1>清晰、纪律、证据与复盘</h1><p>图表研习社不靠刺激性的收益叙事吸引用户。我们把技术分析当作一套可以学习、练习和检验的观察方法。</p></div></section><section className="shell about-principles section-pad"><article><Eye /><span>01</span><h2>先观察</h2><p>先写图上可复核的事实，再解释可能的结构。把事实与观点分开，可以减少确认偏误。</p></article><article><ShieldCheck /><span>02</span><h2>写失效</h2><p>任何判断都必须说明什么证据会推翻它。我们不提供唯一答案，也不承诺预测准确。</p></article><article><RefreshCcw /><span>03</span><h2>留快照</h2><p>保存提交时可见的信息和理由，不用未来走势改写过去，才能真正看到思维习惯。</p></article></section><section className="shell boundary-statement"><span>产品边界</span><h2>这里是学习平台，不是交易平台。</h2><p>不接入券商，不提供买卖、下单、杠杆、跟单、实时喊单或收益排行榜。所有图表仅用于历史教育和纸上练习。</p></section></main></>; }

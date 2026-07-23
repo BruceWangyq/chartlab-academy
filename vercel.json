@@ -1,0 +1,7 @@
+{
+  "crons": [
+    { "path": "/api/cron/reminders", "schedule": "0 14 * * *" },
+    { "path": "/api/cron/data-retention", "schedule": "30 3 * * *" },
+    { "path": "/api/cron/subscription-reconcile", "schedule": "0 4 * * *" }
+  ]
+}

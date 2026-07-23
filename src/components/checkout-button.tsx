@@ -1,0 +1,4 @@
+"use client";
+import { useState } from "react";
+import { LoaderCircle } from "lucide-react";
+export function CheckoutButton({ plan, label }: { plan: "monthly" | "annual"; label: string }) { const [busy, setBusy] = useState(false); const [error, setError] = useState(""); async function checkout() { setBusy(true); setError(""); const response = await fetch("/api/stripe/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ plan }) }); const payload = await response.json(); setBusy(false); if (!response.ok) { setError(payload.error); return; } window.location.href = payload.url; } return <div className="checkout-control"><button className="button button-primary" onClick={checkout} disabled={busy}>{busy ? <LoaderCircle className="spin" /> : label}</button>{error && <small role="alert">{error}</small>}</div>; }

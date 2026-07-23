@@ -1,0 +1,3 @@
+"use client";
+import { useState } from "react";
+export function BillingPortalButton() { const [error, setError] = useState(""); const [busy, setBusy] = useState(false); async function openPortal() { setBusy(true); setError(""); const response = await fetch("/api/stripe/portal", { method: "POST" }); const payload = await response.json(); setBusy(false); if (!response.ok) return setError(payload.error); window.location.href = payload.url; } return <div className="portal-control"><button className="button button-primary" onClick={openPortal} disabled={busy}>{busy ? "正在打开…" : "管理账单与取消订阅"}</button>{error && <p role="alert">{error}</p>}</div>; }

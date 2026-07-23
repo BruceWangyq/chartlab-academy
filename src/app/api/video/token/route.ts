@@ -1,0 +1,7 @@
+import { importPKCS8, SignJWT } from "jose";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { getSession } from "@/lib/session";
+import { getAllLessons } from "@/lib/content-source";
+const schema = z.object({ lessonId: z.string().min(1), playbackId: z.string().min(8).max(160) });
+export async function POST(request: Request) { const user = await getSession(); if (!user) return NextResponse.json({ error: "请先登录。" }, { status: 401 }); const parsed = schema.safeParse(await request.json()); if (!parsed.success) return NextResponse.json({ error: "视频参数无效。" }, { status: 400 }); const lesson = (await getAllLessons()).find((item) => item.id === parsed.data.lessonId); if (!lesson?.video || lesson.video.playbackId !== parsed.data.playbackId || !lesson.video.signed) return NextResponse.json({ error: "视频不存在或配置不匹配。" }, { status: 404 }); if (!lesson.free && user.plan !== "pro") return NextResponse.json({ error: "这段视频需要 Pro 权益。" }, { status: 403 }); if (!process.env.MUX_SIGNING_KEY_ID || !process.env.MUX_SIGNING_PRIVATE_KEY) return NextResponse.json({ error: "视频签名服务尚未配置。" }, { status: 503 }); const privateKey = await importPKCS8(Buffer.from(process.env.MUX_SIGNING_PRIVATE_KEY, "base64").toString("utf8"), "RS256"); const token = await new SignJWT({ aud: "v", sub: parsed.data.playbackId }).setProtectedHeader({ alg: "RS256", kid: process.env.MUX_SIGNING_KEY_ID }).setExpirationTime("5m").sign(privateKey); return NextResponse.json({ token, expiresIn: 300 }); }

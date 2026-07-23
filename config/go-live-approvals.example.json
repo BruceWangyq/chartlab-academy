@@ -1,0 +1,50 @@
+{
+  "brand": {
+    "status": "pending",
+    "reviewer": "",
+    "approvedAt": "",
+    "evidence": ""
+  },
+  "legal": {
+    "status": "pending",
+    "reviewer": "",
+    "approvedAt": "",
+    "jurisdictions": [],
+    "evidence": ""
+  },
+  "content": {
+    "status": "pending",
+    "reviewer": "",
+    "approvedAt": "",
+    "reviewedLessons": 0,
+    "reviewedQuestions": 0,
+    "reviewedCases": 0,
+    "evidence": ""
+  },
+  "marketData": {
+    "status": "pending",
+    "reviewer": "",
+    "approvedAt": "",
+    "licensedCases": 0,
+    "evidence": ""
+  },
+  "devices": {
+    "status": "pending",
+    "reviewer": "",
+    "approvedAt": "",
+    "iphone": false,
+    "android": false,
+    "safari": false,
+    "evidence": ""
+  },
+  "operations": {
+    "status": "pending",
+    "reviewer": "",
+    "approvedAt": "",
+    "supportEmail": "",
+    "statusPageUrl": "",
+    "supportSla": "",
+    "softLaunchPlan": "",
+    "evidence": ""
+  }
+}
